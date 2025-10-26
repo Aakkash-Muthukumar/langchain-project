@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Main Fetch.AI wrapped agent
+  langchain-agent:
+    build: .
+    container_name: langchain-fetchai-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - AGENT_SEED_PHRASE=${AGENT_SEED_PHRASE}
+      - AGENT_NAME=langchain_support_agent
+      - AGENT_PORT=8000
+      - AGENT_ENDPOINT=http://localhost:8000/submit
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - agent-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Optional: Test client
+  test-client:
+    build: .
+    container_name: langchain-test-client
+    ports:
+      - "8001:8001"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TEST_CLIENT_SEED_PHRASE=${TEST_CLIENT_SEED_PHRASE}
+      - WRAPPER_AGENT_ADDRESS=${WRAPPER_AGENT_ADDRESS}
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - agent-network
+    depends_on:
+      langchain-agent:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - test
+
+volumes:
+  logs:
+    driver: local
+
+networks:
+  agent-network:
+    driver: bridge

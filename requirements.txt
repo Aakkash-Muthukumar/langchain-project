@@ -1,3 +1,11 @@
 langchain==0.1.0
 langchain-google-genai==0.0.5
 python-dotenv==1.0.0
+
+# Fetch.AI Dependencies
+uagents==0.10.0
+cosmpy==0.9.0
+
+# Additional utilities
+requests==2.31.0
+pydantic==2.0.0
